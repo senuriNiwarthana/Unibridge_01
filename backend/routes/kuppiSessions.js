@@ -31,6 +31,72 @@ const getSessionStatus = (session, now = new Date()) => {
   return 'completed';
 };
 
+const isPastStartTime = (date, time) => {
+  const start = asSessionStartDate(date, time);
+  if (!start) return false;
+
+  const now = new Date();
+  now.setSeconds(0, 0);
+  return start < now;
+};
+
+const validateSessionPayload = (payload) => {
+  const {
+    title,
+    sessionType,
+    meetingPlatform,
+    meetingLink,
+    moduleName,
+    description,
+    date,
+    time,
+    sessionHost,
+    durationMinutes
+  } = payload;
+
+  const errors = {};
+
+  if (!String(title || '').trim()) errors.title = 'Session title is required';
+
+  const normalizedSessionType = normalizeSessionType(sessionType);
+  if (!SESSION_TYPES.includes(normalizedSessionType)) {
+    errors.sessionType = 'Please select a valid session type';
+  }
+
+  if (!String(moduleName || '').trim()) errors.moduleName = 'Module name is required';
+  if (!String(description || '').trim()) errors.description = 'Session description is required';
+  if (!String(date || '').trim()) errors.date = 'Date is required';
+  if (!String(time || '').trim()) errors.time = 'Time is required';
+  if (!String(sessionHost || '').trim()) errors.sessionHost = 'Session host is required';
+
+  const startDate = asSessionStartDate(date, time);
+  if (!startDate) {
+    errors.dateTime = 'Date and time must be valid';
+  } else if (isPastStartTime(date, time)) {
+    errors.date = 'Session date/time cannot be in the past';
+  }
+
+  const normalizedPlatform = normalizePlatform(meetingPlatform);
+  if (normalizedSessionType === 'online') {
+    if (!ONLINE_PLATFORMS.includes(normalizedPlatform)) {
+      errors.meetingPlatform = 'Meeting platform is required for online sessions';
+    }
+    if (!String(meetingLink || '').trim()) {
+      errors.meetingLink = 'Meeting link is required for online sessions';
+    }
+  }
+
+  if (durationMinutes && Number(durationMinutes) <= 0) {
+    errors.durationMinutes = 'Duration must be greater than zero';
+  }
+
+  return {
+    errors,
+    normalizedSessionType,
+    normalizedPlatform
+  };
+};
+
 router.get('/', requireAuth, attachUser, (req, res) => {
   const { page = 1, limit = 10, status, moduleName, search } = req.query;
   const db = readDb();
@@ -97,35 +163,7 @@ router.post('/', requireAuth, requireManagerRole, (req, res) => {
     durationMinutes
   } = req.body;
 
-  const errors = {};
-
-  if (!String(title || '').trim()) errors.title = 'Session title is required';
-
-  const normalizedSessionType = normalizeSessionType(sessionType);
-  if (!SESSION_TYPES.includes(normalizedSessionType)) {
-    errors.sessionType = 'Please select a valid session type';
-  }
-
-  if (!String(moduleName || '').trim()) errors.moduleName = 'Module name is required';
-  if (!String(description || '').trim()) errors.description = 'Session description is required';
-  if (!String(date || '').trim()) errors.date = 'Date is required';
-  if (!String(time || '').trim()) errors.time = 'Time is required';
-  if (!String(sessionHost || '').trim()) errors.sessionHost = 'Session host is required';
-
-  const startDate = asSessionStartDate(date, time);
-  if (!startDate) {
-    errors.dateTime = 'Date and time must be valid';
-  }
-
-  const normalizedPlatform = normalizePlatform(meetingPlatform);
-  if (normalizedSessionType === 'online') {
-    if (!ONLINE_PLATFORMS.includes(normalizedPlatform)) {
-      errors.meetingPlatform = 'Meeting platform is required for online sessions';
-    }
-    if (!String(meetingLink || '').trim()) {
-      errors.meetingLink = 'Meeting link is required for online sessions';
-    }
-  }
+  const { errors, normalizedSessionType, normalizedPlatform } = validateSessionPayload(req.body);
 
   if (Object.keys(errors).length > 0) {
     return res.status(400).json({
@@ -167,6 +205,68 @@ router.post('/', requireAuth, requireManagerRole, (req, res) => {
       status: getSessionStatus(session)
     }
   });
+});
+
+router.put('/:id', requireAuth, requireManagerRole, (req, res) => {
+  const db = readDb();
+  const session = db.kuppiSessions.find((item) => item.id === req.params.id);
+
+  if (!session) {
+    return res.status(404).json({ message: 'Kuppi session not found' });
+  }
+
+  if (getSessionStatus(session) !== 'upcoming') {
+    return res.status(400).json({ message: 'Only upcoming sessions can be edited' });
+  }
+
+  const { errors, normalizedSessionType, normalizedPlatform } = validateSessionPayload(req.body);
+
+  if (Object.keys(errors).length > 0) {
+    return res.status(400).json({
+      message: 'Validation failed',
+      errors
+    });
+  }
+
+  session.title = String(req.body.title).trim();
+  session.sessionType = normalizedSessionType;
+  session.meetingPlatform = normalizedSessionType === 'online' ? normalizedPlatform : null;
+  session.meetingLink = normalizedSessionType === 'online' ? String(req.body.meetingLink).trim() : null;
+  session.moduleName = String(req.body.moduleName).trim();
+  session.description = String(req.body.description).trim();
+  session.date = String(req.body.date).trim();
+  session.time = String(req.body.time).trim();
+  session.sessionHost = String(req.body.sessionHost).trim();
+  session.durationMinutes = Number(req.body.durationMinutes) > 0 ? Number(req.body.durationMinutes) : 60;
+  session.additionalDetails = String(req.body.additionalDetails || '').trim();
+  session.updatedAt = new Date().toISOString();
+
+  writeDb(db);
+
+  return res.json({
+    message: 'Kuppi session updated successfully',
+    session: {
+      ...session,
+      status: getSessionStatus(session)
+    }
+  });
+});
+
+router.delete('/:id', requireAuth, requireManagerRole, (req, res) => {
+  const db = readDb();
+  const index = db.kuppiSessions.findIndex((item) => item.id === req.params.id);
+
+  if (index === -1) {
+    return res.status(404).json({ message: 'Kuppi session not found' });
+  }
+
+  if (getSessionStatus(db.kuppiSessions[index]) !== 'upcoming') {
+    return res.status(400).json({ message: 'Only upcoming sessions can be deleted' });
+  }
+
+  db.kuppiSessions.splice(index, 1);
+  writeDb(db);
+  return res.json({ message: 'Kuppi session deleted successfully' });
 });
 
 module.exports = router;
