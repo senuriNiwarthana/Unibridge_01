@@ -1,6 +1,19 @@
 {
   "modules": [
     {
+      "id": "0c6ca9c1-1deb-4893-8058-675f6cfd2ba9",
+      "name": "IWT",
+      "year": 2,
+      "semester": 1,
+      "createdBy": {
+        "id": "u-manager",
+        "firstName": "Material",
+        "lastName": "Manager",
+        "role": "studyMaterialsManager"
+      },
+      "createdAt": "2026-03-23T17:01:43.848Z"
+    },
+    {
       "id": "2540e59a-23fe-4e97-a61b-b9b2eee59c6b",
       "name": "NDM",
       "year": 3,
