@@ -1,0 +1,45 @@
+{
+  "modules": [
+    {
+      "id": "2540e59a-23fe-4e97-a61b-b9b2eee59c6b",
+      "name": "NDM",
+      "year": 3,
+      "semester": 1,
+      "createdBy": {
+        "id": "u-manager",
+        "firstName": "Material",
+        "lastName": "Manager",
+        "role": "studyMaterialsManager"
+      },
+      "createdAt": "2026-03-23T14:11:49.068Z"
+    }
+  ],
+  "materials": [
+    {
+      "id": "e0ac577a-2e20-4db0-b760-aebbc26eb44d",
+      "title": "NDM API CALL",
+      "description": "API CALL LECTURE IN ONE PDF",
+      "category": "lecture",
+      "tags": [],
+      "ownerId": "u-student",
+      "ownerName": "Student User",
+      "year": 3,
+      "semester": 1,
+      "module": "NDM",
+      "status": "approved",
+      "reviewNotes": "",
+      "downloads": 1,
+      "viewed": 0,
+      "file": {
+        "originalName": "5 - REST APIs.pdf",
+        "storedName": "63822c72-ff96-4348-afab-fc8c790cc4a3-5---rest-apis.pdf",
+        "path": "C:\\Users\\ferna\\OneDrive\\Desktop\\Senuri\\Unibridge\\backend\\uploads\\63822c72-ff96-4348-afab-fc8c790cc4a3-5---rest-apis.pdf",
+        "mimetype": "application/pdf",
+        "size": 1174217,
+        "typeLabel": "PDF"
+      },
+      "createdAt": "2026-03-23T14:13:45.326Z",
+      "updatedAt": "2026-03-23T14:17:18.444Z"
+    }
+  ]
+}
