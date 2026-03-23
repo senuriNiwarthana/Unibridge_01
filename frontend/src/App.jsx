@@ -8,6 +8,7 @@ import StudyMaterialListPage from './pages/StudyMaterialListPage';
 import StructuredStudyMaterialsPage from './pages/StructuredStudyMaterialsPage';
 import ManageStudyMaterialsPage from './pages/ManageStudyMaterialsPage';
 import ManageModulesPage from './pages/ManageModulesPage';
+import CreateKuppiSessionPage from './pages/CreateKuppiSessionPage';
 
 const App = () => {
   return (
@@ -20,6 +21,7 @@ const App = () => {
         <Route path={APP_ROUTES.STRUCTURED_STUDY_MATERIALS} element={<StructuredStudyMaterialsPage />} />
         <Route path={APP_ROUTES.MANAGE_STUDY_MATERIALS} element={<ManageStudyMaterialsPage />} />
         <Route path={APP_ROUTES.MANAGE_MODULES} element={<ManageModulesPage />} />
+        <Route path={APP_ROUTES.CREATE_KUPPI_SESSION} element={<CreateKuppiSessionPage />} />
       </Route>
       <Route path="*" element={<Navigate to={APP_ROUTES.DASHBOARD} replace />} />
     </Routes>
