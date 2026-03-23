@@ -35,6 +35,12 @@ const CreateKuppiSessionPage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [loadingModules, setLoadingModules] = useState(true);
   const [moduleOptions, setModuleOptions] = useState([]);
+  const todayDate = useMemo(() => {
+    const today = new Date();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${today.getFullYear()}-${month}-${day}`;
+  }, []);
 
   const isOnline = useMemo(() => form.sessionType === 'online', [form.sessionType]);
 
@@ -63,7 +69,7 @@ const CreateKuppiSessionPage = () => {
       return next;
     });
 
-    setErrors((prev) => ({ ...prev, [name]: undefined }));
+    setErrors((prev) => ({ ...prev, [name]: undefined, dateTime: undefined }));
   };
 
   const validate = () => {
@@ -76,6 +82,24 @@ const CreateKuppiSessionPage = () => {
     if (!form.date) nextErrors.date = 'Date is required';
     if (!form.time) nextErrors.time = 'Time is required';
     if (!form.sessionHost.trim()) nextErrors.sessionHost = 'Session host is required';
+
+    if (form.date) {
+      const selected = new Date(`${form.date}T00:00:00`);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (selected < today) {
+        nextErrors.date = 'Date cannot be in the past';
+      }
+    }
+
+    if (form.date && form.time) {
+      const selectedDateTime = new Date(`${form.date}T${form.time}:00`);
+      if (Number.isNaN(selectedDateTime.getTime())) {
+        nextErrors.dateTime = 'Please select a valid date and time';
+      } else if (selectedDateTime < new Date()) {
+        nextErrors.dateTime = 'Session date/time cannot be in the past';
+      }
+    }
 
     if (form.sessionType === 'online') {
       if (!form.meetingPlatform) nextErrors.meetingPlatform = 'Meeting platform is required for online sessions';
@@ -234,6 +258,7 @@ const CreateKuppiSessionPage = () => {
               className="input-base"
               type="date"
               value={form.date}
+                min={todayDate}
               onChange={(event) => setField('date', event.target.value)}
             />
             {errors.date && <p className="text-xs text-red-600">{errors.date}</p>}

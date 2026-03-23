@@ -6,5 +6,6 @@ export const APP_ROUTES = {
   STRUCTURED_STUDY_MATERIALS: '/structured-study-materials',
   MANAGE_STUDY_MATERIALS: '/manage-study-materials',
   MANAGE_MODULES: '/manage-modules',
-  CREATE_KUPPI_SESSION: '/create-kuppi-session'
+  CREATE_KUPPI_SESSION: '/create-kuppi-session',
+  MANAGE_KUPPI_SESSIONS: '/manage-kuppi-sessions'
 };

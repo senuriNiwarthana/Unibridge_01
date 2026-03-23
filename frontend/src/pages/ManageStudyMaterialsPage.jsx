@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import { APP_ROUTES } from '../constants/routes';
 import { studyMaterialService } from '../services/studyMaterialService';
 import { useAuth } from '../contexts/AuthContext';
 import StatCard from '../components/StatCard';
@@ -113,9 +115,13 @@ const ManageStudyMaterialsPage = () => {
     <div className="space-y-5">
       <div className="card-soft flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-2xl font-semibold text-slate-900">Manage Study Materials</h1>
-        <div className="flex rounded-full border border-slate-200 p-1">
-          <button type="button" className={`rounded-full px-3 py-1 text-sm ${mode === 'completed' ? 'bg-indigo-100 text-indigo-700' : 'text-slate-500'}`} onClick={() => setMode('completed')}>Completed</button>
-          <button type="button" className={`rounded-full px-3 py-1 text-sm ${mode === 'pending' ? 'bg-indigo-100 text-indigo-700' : 'text-slate-500'}`} onClick={() => setMode('pending')}>Pending Review</button>
+        <div className="flex flex-wrap items-center gap-2">
+          <Link to={APP_ROUTES.CREATE_KUPPI_SESSION} className="btn-secondary">Create Kuppi Session</Link>
+          <Link to={APP_ROUTES.MANAGE_KUPPI_SESSIONS} className="btn-secondary">Manage Kuppi Sessions</Link>
+          <div className="flex rounded-full border border-slate-200 p-1">
+            <button type="button" className={`rounded-full px-3 py-1 text-sm ${mode === 'completed' ? 'bg-indigo-100 text-indigo-700' : 'text-slate-500'}`} onClick={() => setMode('completed')}>Completed</button>
+            <button type="button" className={`rounded-full px-3 py-1 text-sm ${mode === 'pending' ? 'bg-indigo-100 text-indigo-700' : 'text-slate-500'}`} onClick={() => setMode('pending')}>Pending Review</button>
+          </div>
         </div>
       </div>
 

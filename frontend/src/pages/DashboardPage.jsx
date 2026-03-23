@@ -54,6 +54,7 @@ const DashboardPage = () => {
     { to: APP_ROUTES.MANAGE_STUDY_MATERIALS, title: 'Manage Study Materials', description: 'Review submissions and statuses', icon: '🗂' },
     { to: APP_ROUTES.MANAGE_MODULES, title: 'Manage Modules', description: 'Maintain year-semester modules', icon: '🧩' },
     { to: APP_ROUTES.CREATE_KUPPI_SESSION, title: 'Create Kuppi Session', description: 'Create and schedule a new Kuppi session', icon: '🎯' },
+    { to: APP_ROUTES.MANAGE_KUPPI_SESSIONS, title: 'Manage Kuppi Sessions', description: 'Edit upcoming sessions and review past sessions', icon: '📅' },
     { to: APP_ROUTES.UPLOAD_STUDY_MATERIAL, title: 'Upload Study Material', description: 'Directly publish approved resources', icon: '⬆️' },
     ...studentActions
   ];
