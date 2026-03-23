@@ -41,5 +41,49 @@
       "createdAt": "2026-03-23T14:13:45.326Z",
       "updatedAt": "2026-03-23T14:17:18.444Z"
     }
+  ],
+  "kuppiSessions": [
+    {
+      "id": "7e52e88d-8df2-4b89-b3d0-169b3fa32263",
+      "title": "Kuppi Revision Session",
+      "sessionType": "online",
+      "meetingPlatform": "zoom",
+      "meetingLink": "https://zoom.us/j/123456",
+      "moduleName": "Software Engineering Fundamentals",
+      "description": "Revision for week 6 topics",
+      "date": "2030-03-30",
+      "time": "18:30",
+      "sessionHost": "Material Manager",
+      "durationMinutes": 90,
+      "additionalDetails": "Bring your questions",
+      "createdBy": {
+        "id": "u-manager",
+        "firstName": "Material",
+        "lastName": "Manager",
+        "role": "studyMaterialsManager"
+      },
+      "createdAt": "2026-03-23T15:14:52.902Z"
+    },
+    {
+      "id": "828325f6-b756-461b-82ef-3c4b96b59443",
+      "title": "test",
+      "sessionType": "online",
+      "meetingPlatform": "zoom",
+      "meetingLink": "https//whaga",
+      "moduleName": "NDM",
+      "description": "test",
+      "date": "2026-03-24",
+      "time": "23:52",
+      "sessionHost": "Study Student",
+      "durationMinutes": 38,
+      "additionalDetails": "test",
+      "createdBy": {
+        "id": "u-manager",
+        "firstName": "Material",
+        "lastName": "Manager",
+        "role": "studyMaterialsManager"
+      },
+      "createdAt": "2026-03-23T15:22:29.841Z"
+    }
   ]
 }

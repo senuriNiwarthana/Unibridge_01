@@ -8,13 +8,14 @@ const mongoose = require('mongoose');
 const studyMaterialRoutes = require('./routes/studyMaterials');
 const managementRoutes = require('./routes/management');
 const moduleRoutes = require('./routes/modules');
+const kuppiSessionRoutes = require('./routes/kuppiSessions');
 const { ensureDataStore } = require('./utils/dataStore');
 
 dotenv.config();
 ensureDataStore();
 
 const app = express();
-const PORT = 5000;
+const PORT = 6000;
 
 // Middleware
 app.use(cors({ origin: true, credentials: true }));
@@ -36,6 +37,7 @@ app.get('/', (_req, res) => {
 app.use('/api/study-materials', studyMaterialRoutes);
 app.use('/api/management', managementRoutes);
 app.use('/api/modules', moduleRoutes);
+app.use('/api/kuppi-sessions', kuppiSessionRoutes);
 
 // Error Handler
 app.use((error, _req, res, _next) => {

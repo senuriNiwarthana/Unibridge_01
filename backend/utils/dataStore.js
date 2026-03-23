@@ -23,7 +23,8 @@ const initialData = {
       createdAt: new Date().toISOString()
     }
   ],
-  materials: []
+  materials: [],
+  kuppiSessions: []
 };
 
 const ensureDataStore = () => {
@@ -35,7 +36,27 @@ const ensureDataStore = () => {
 const readDb = () => {
   ensureDataStore();
   const raw = fs.readFileSync(dataFile, 'utf-8');
-  return JSON.parse(raw);
+  const parsed = JSON.parse(raw);
+
+  let isUpdated = false;
+  if (!Array.isArray(parsed.modules)) {
+    parsed.modules = [];
+    isUpdated = true;
+  }
+  if (!Array.isArray(parsed.materials)) {
+    parsed.materials = [];
+    isUpdated = true;
+  }
+  if (!Array.isArray(parsed.kuppiSessions)) {
+    parsed.kuppiSessions = [];
+    isUpdated = true;
+  }
+
+  if (isUpdated) {
+    writeDb(parsed);
+  }
+
+  return parsed;
 };
 
 const writeDb = (db) => {
