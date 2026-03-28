@@ -9,6 +9,27 @@ const { formatFileType } = require('../utils/formatters');
 
 const router = express.Router();
 
+const isValidUrl = (value) => {
+  if (!value) return false;
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+  } catch {
+    return false;
+  }
+};
+
+const normalizeText = (value = '') => value.trim().toLowerCase();
+
+const hasDuplicateTitleAndSubject = (materials = [], title = '', module = '') => {
+  const normalizedTitle = normalizeText(title);
+  const normalizedModule = normalizeText(module);
+
+  return materials.some((item) => {
+    return normalizeText(item.title) === normalizedTitle && normalizeText(item.module) === normalizedModule;
+  });
+};
+
 router.get('/approved', attachUser, (req, res) => {
   const { page = 1, limit = 10, category = '', search = '' } = req.query;
   const db = readDb();
@@ -51,13 +72,27 @@ router.get('/approved', attachUser, (req, res) => {
 });
 
 router.post('/submit', requireAuth, upload.single('file'), (req, res) => {
-  const { title, description, category = 'other', tags = '', year, semester, module } = req.body;
+  const { title, description, category = 'other', tags = '', year, semester, module, externalLink = '' } = req.body;
+  const cleanedLink = String(externalLink).trim();
 
-  if (!title || !description || !year || !semester || !module || !req.file) {
+  if (!title || !description || !year || !semester || !module) {
     return res.status(400).json({ message: 'Missing required submission fields' });
   }
 
+  if (!req.file && !cleanedLink) {
+    return res.status(400).json({ message: 'At least one of file or external link is required' });
+  }
+
+  if (cleanedLink && !isValidUrl(cleanedLink)) {
+    return res.status(400).json({ message: 'External link must be a valid URL' });
+  }
+
   const db = readDb();
+  if (hasDuplicateTitleAndSubject(db.materials, title, module)) {
+    return res.status(409).json({ message: 'Duplicate material found for the same title and subject' });
+  }
+
+  const submittedAt = new Date().toISOString();
   const material = {
     id: uuidv4(),
     title,
@@ -73,16 +108,18 @@ router.post('/submit', requireAuth, upload.single('file'), (req, res) => {
     reviewNotes: '',
     downloads: 0,
     viewed: 0,
-    file: {
+    externalLink: cleanedLink || null,
+    file: req.file ? {
       originalName: req.file.originalname,
       storedName: req.file.filename,
       path: req.file.path,
       mimetype: req.file.mimetype,
       size: req.file.size,
       typeLabel: formatFileType(req.file.mimetype, req.file.originalname)
-    },
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    } : null,
+    submissionDate: submittedAt,
+    createdAt: submittedAt,
+    updatedAt: submittedAt
   };
 
   db.materials.unshift(material);

@@ -96,6 +96,11 @@ const ManageStudyMaterialsPage = () => {
   };
 
   const handlePreview = async (item) => {
+    if (!item.file && item.externalLink) {
+      window.open(item.externalLink, '_blank', 'noopener,noreferrer');
+      return;
+    }
+
     try {
       const response = await studyMaterialService.preview(item.id);
       const blobUrl = URL.createObjectURL(new Blob([response.data]));
@@ -149,8 +154,8 @@ const ManageStudyMaterialsPage = () => {
                     <span className="rounded-full bg-slate-100 px-2 py-1">Year {item.year}</span>
                     <span className="rounded-full bg-slate-100 px-2 py-1">Semester {item.semester}</span>
                     <span className="rounded-full bg-slate-100 px-2 py-1">{item.module}</span>
-                    <span className="rounded-full bg-slate-100 px-2 py-1">{formatFileSize(item.file?.size)}</span>
-                    <span className="rounded-full bg-slate-100 px-2 py-1">{formatDate(item.createdAt)}</span>
+                    <span className="rounded-full bg-slate-100 px-2 py-1">{item.file ? formatFileSize(item.file?.size) : 'External link'}</span>
+                    <span className="rounded-full bg-slate-100 px-2 py-1">{formatDate(item.submissionDate || item.createdAt)}</span>
                   </div>
                 </div>
               </div>

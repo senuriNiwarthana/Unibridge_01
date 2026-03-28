@@ -17,7 +17,7 @@ const ReviewPanel = ({ item, draft, onChange, onApprove, onReject, onPreview }) 
         onChange={(event) => onChange({ ...draft, reviewNotes: event.target.value })}
       />
       <div className="mt-3 flex flex-wrap gap-2">
-        <button type="button" className="btn-secondary" onClick={onPreview}>Preview</button>
+        <button type="button" className="btn-secondary" onClick={onPreview}>{item.file ? 'Preview' : 'Open Link'}</button>
         <button type="button" className="btn-primary" onClick={onApprove}>Approve</button>
         <button type="button" className="btn-danger" onClick={onReject}>Reject</button>
       </div>

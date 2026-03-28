@@ -11,7 +11,19 @@ import FileDropzone from '../components/FileDropzone';
 import ProgressBar from '../components/ProgressBar';
 import LoadingSpinner from '../components/LoadingSpinner';
 
-const steps = ['Academic Context', 'Study Material Info', 'File Upload'];
+const steps = ['Academic Context', 'Study Material Info', 'File or Link'];
+const MAX_UPLOAD_SIZE_BYTES = 10 * 1024 * 1024;
+const allowedFileExtensions = ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'jpg', 'jpeg', 'png', 'zip'];
+
+const getExtension = (fileName = '') => fileName.split('.').pop()?.toLowerCase() || '';
+const isValidHttpUrl = (value = '') => {
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+  } catch {
+    return false;
+  }
+};
 
 const SubmitStudyMaterialPage = () => {
   const navigate = useNavigate();
@@ -21,6 +33,8 @@ const SubmitStudyMaterialPage = () => {
   const [progress, setProgress] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
+  const [duplicateWarning, setDuplicateWarning] = useState('');
+  const [checkingDuplicate, setCheckingDuplicate] = useState(false);
 
   const [form, setForm] = useState({
     title: '',
@@ -30,6 +44,7 @@ const SubmitStudyMaterialPage = () => {
     description: '',
     category: 'lecture',
     tags: '',
+    externalLink: '',
     file: null
   });
 
@@ -53,6 +68,35 @@ const SubmitStudyMaterialPage = () => {
 
   const titleCount = useMemo(() => form.title.length, [form.title]);
   const descriptionCount = useMemo(() => form.description.length, [form.description]);
+  const submissionDatePreview = useMemo(() => new Date().toLocaleString(), []);
+
+  useEffect(() => {
+    const title = form.title.trim();
+    const moduleName = form.module.trim();
+
+    if (!title || !moduleName) {
+      setDuplicateWarning('');
+      return;
+    }
+
+    const timeout = setTimeout(async () => {
+      try {
+        setCheckingDuplicate(true);
+        const response = await studyMaterialService.checkDuplicate({ title, module: moduleName });
+        if (response.data.duplicate) {
+          setDuplicateWarning('A material with the same title and subject already exists.');
+        } else {
+          setDuplicateWarning('');
+        }
+      } catch {
+        setDuplicateWarning('');
+      } finally {
+        setCheckingDuplicate(false);
+      }
+    }, 350);
+
+    return () => clearTimeout(timeout);
+  }, [form.title, form.module]);
 
   const validateStep = () => {
     const nextErrors = {};
@@ -68,8 +112,24 @@ const SubmitStudyMaterialPage = () => {
       nextErrors.description = 'Description must be 20-1000 characters';
     }
 
-    if (step === 2 && !form.file) {
-      nextErrors.file = 'File is required';
+    if (step === 2) {
+      const trimmedLink = form.externalLink.trim();
+
+      if (!form.file && !trimmedLink) {
+        nextErrors.resource = 'Please upload a file or provide an external link';
+      }
+
+      if (!form.file && trimmedLink && !isValidHttpUrl(trimmedLink)) {
+        nextErrors.externalLink = 'Please enter a valid URL (https://...)';
+      }
+
+      if (form.file) {
+        if (form.file.size > MAX_UPLOAD_SIZE_BYTES) {
+          nextErrors.file = 'File must be smaller than 10 MB';
+        } else if (!allowedFileExtensions.includes(getExtension(form.file.name))) {
+          nextErrors.file = 'Unsupported file type. Allowed: PDF, DOC, DOCX, PPT, PPTX, JPG, PNG, ZIP';
+        }
+      }
     }
 
     setErrors(nextErrors);
@@ -79,6 +139,11 @@ const SubmitStudyMaterialPage = () => {
   const handleSubmit = async () => {
     if (!validateStep()) return;
 
+    if (duplicateWarning) {
+      toast.warn('Duplicate title + subject detected. Please use a unique title or subject.');
+      return;
+    }
+
     const payload = new FormData();
     payload.append('title', form.title);
     payload.append('description', form.description);
@@ -87,7 +152,8 @@ const SubmitStudyMaterialPage = () => {
     payload.append('module', form.module);
     payload.append('category', form.category);
     payload.append('tags', form.tags);
-    payload.append('file', form.file);
+    if (form.externalLink.trim()) payload.append('externalLink', form.externalLink.trim());
+    if (form.file) payload.append('file', form.file);
 
     try {
       setSubmitting(true);
@@ -118,6 +184,8 @@ const SubmitStudyMaterialPage = () => {
             <label className="block text-sm font-medium text-slate-700">Title ({titleCount}/120)</label>
             <input className={`input-base ${errors.title ? 'input-error' : ''}`} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
             {errors.title && <p className="text-xs text-red-500">{errors.title}</p>}
+            {checkingDuplicate && <p className="text-xs text-slate-500">Checking duplicates...</p>}
+            {!checkingDuplicate && duplicateWarning && <p className="text-xs text-amber-600">{duplicateWarning}</p>}
 
             <div className="grid gap-3 md:grid-cols-3">
               <select className={`input-base ${errors.year ? 'input-error shake' : ''}`} value={form.year} onChange={(e) => setForm({ ...form, year: e.target.value, module: '' })}>
@@ -157,19 +225,35 @@ const SubmitStudyMaterialPage = () => {
 
         {step === 2 && (
           <div className="space-y-4 fade-up">
+            <div className="rounded-xl border border-indigo-100 bg-indigo-50 p-3 text-xs text-indigo-800">
+              File or external link at least one is required.
+            </div>
+
             <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm">
               <p><strong>Title:</strong> {form.title}</p>
               <p><strong>Year/Semester:</strong> {form.year} / {form.semester}</p>
               <p><strong>Module:</strong> {form.module}</p>
               <p><strong>Category:</strong> <span className="capitalize">{form.category}</span></p>
+              <p><strong>Submission Date (Auto-generated):</strong> {submissionDatePreview}</p>
             </div>
+
+            <input
+              className={`input-base ${errors.externalLink ? 'input-error shake' : ''}`}
+              placeholder="External link (e.g., https://drive.google.com/...)"
+              value={form.externalLink}
+              onChange={(e) => setForm({ ...form, externalLink: e.target.value })}
+            />
+            {errors.externalLink && <p className="text-xs text-red-500">{errors.externalLink}</p>}
+
             <FileDropzone
               file={form.file}
               onSelect={(selected) => setForm({ ...form, file: selected })}
               onRemove={() => setForm({ ...form, file: null })}
-              accept=".pdf,.doc,.docx,.ppt,.pptx,.txt,.jpg,.jpeg,.png,.gif"
+              accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.jpeg,.png,.zip"
             />
+            <p className="text-xs text-slate-500">Allowed: PDF, DOC, DOCX, PPT, PPTX, JPG, PNG, ZIP. Max size: 10 MB.</p>
             {errors.file && <p className="text-xs text-red-500">{errors.file}</p>}
+            {errors.resource && <p className="text-xs text-red-500">{errors.resource}</p>}
             {submitting && <ProgressBar value={progress} />}
           </div>
         )}

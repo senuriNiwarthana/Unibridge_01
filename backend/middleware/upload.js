@@ -2,16 +2,28 @@ const path = require('path');
 const multer = require('multer');
 const { v4: uuidv4 } = require('uuid');
 
+const allowedExtensions = new Set([
+  '.pdf',
+  '.doc',
+  '.docx',
+  '.ppt',
+  '.pptx',
+  '.jpg',
+  '.jpeg',
+  '.png',
+  '.zip'
+]);
+
 const allowedMime = new Set([
   'application/pdf',
   'application/msword',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
   'application/vnd.ms-powerpoint',
   'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-  'text/plain',
   'image/jpeg',
   'image/png',
-  'image/gif'
+  'application/zip',
+  'application/x-zip-compressed'
 ]);
 
 const storage = multer.diskStorage({
@@ -26,14 +38,18 @@ const upload = multer({
   storage,
   limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: (_req, file, cb) => {
-    if (allowedMime.has(file.mimetype)) {
+    const extension = path.extname(file.originalname || '').toLowerCase();
+    if (allowedMime.has(file.mimetype) && allowedExtensions.has(extension)) {
       cb(null, true);
     } else {
-      cb(new Error('Unsupported file type'));
+      cb(new Error('Unsupported file type. Allowed: PDF, DOC, DOCX, PPT, PPTX, JPG, PNG, ZIP'));
     }
   }
 });
 
 module.exports = {
-  upload
+  upload,
+  allowedExtensions,
+  allowedMime,
+  maxUploadSizeBytes: 10 * 1024 * 1024
 };

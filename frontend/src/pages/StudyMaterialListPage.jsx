@@ -54,12 +54,17 @@ const StudyMaterialListPage = () => {
   }, [filters.page, filters.category]);
 
   const handleDownload = async (item) => {
+    if (!item.file && item.externalLink) {
+      window.open(item.externalLink, '_blank', 'noopener,noreferrer');
+      return;
+    }
+
     try {
       const response = await studyMaterialService.download(item.id);
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const anchor = document.createElement('a');
       anchor.href = url;
-      anchor.setAttribute('download', item.file.originalName);
+      anchor.setAttribute('download', item.file?.originalName || item.title || 'study-material');
       document.body.appendChild(anchor);
       anchor.click();
       anchor.remove();

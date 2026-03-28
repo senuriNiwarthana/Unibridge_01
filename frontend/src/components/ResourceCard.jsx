@@ -2,6 +2,8 @@ import FileTypeBadge from './FileTypeBadge';
 import { detectFileType, formatDate, formatFileSize, getInitials } from '../utils/formatters';
 
 const ResourceCard = ({ item, onDownload, onEdit, onDelete, canEdit = false }) => {
+  const hasFile = Boolean(item.file);
+
   return (
     <div className="card-soft">
       <div className="flex items-start justify-between gap-4">
@@ -15,7 +17,7 @@ const ResourceCard = ({ item, onDownload, onEdit, onDelete, canEdit = false }) =
           <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
             <span className="flex items-center gap-1 rounded-full bg-slate-100 px-2 py-1">👤 {item.ownerName || getInitials(item.ownerName)}</span>
             <span className="rounded-full bg-slate-100 px-2 py-1">⬇ {item.downloads || 0}</span>
-            <span className="rounded-full bg-slate-100 px-2 py-1">{formatFileSize(item.file?.size || 0)}</span>
+            <span className="rounded-full bg-slate-100 px-2 py-1">{hasFile ? formatFileSize(item.file?.size || 0) : 'External link'}</span>
             <span className="rounded-full bg-slate-100 px-2 py-1">{formatDate(item.createdAt)}</span>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -25,7 +27,7 @@ const ResourceCard = ({ item, onDownload, onEdit, onDelete, canEdit = false }) =
           </div>
         </div>
         <div className="flex flex-col gap-2">
-          <button type="button" onClick={() => onDownload(item)} className="btn-primary">Download</button>
+          <button type="button" onClick={() => onDownload(item)} className="btn-primary">{hasFile ? 'Download' : 'Open Link'}</button>
           {canEdit && <button type="button" onClick={() => onEdit(item)} className="btn-secondary">Edit</button>}
           {canEdit && <button type="button" onClick={() => onDelete(item)} className="btn-danger">Delete</button>}
         </div>

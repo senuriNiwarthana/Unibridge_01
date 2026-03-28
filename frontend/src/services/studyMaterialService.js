@@ -4,6 +4,7 @@ export const studyMaterialService = {
   upload: (formData) => apiClient.post('/api/study-materials/upload', formData, {
     headers: { 'Content-Type': 'multipart/form-data' }
   }),
+  checkDuplicate: (params) => apiClient.get('/api/study-materials/duplicate-check', { params }),
   submitForReview: (formData) => apiClient.post('/api/management/submit', formData, {
     headers: { 'Content-Type': 'multipart/form-data' }
   }),
